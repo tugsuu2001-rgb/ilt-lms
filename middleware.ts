@@ -22,12 +22,12 @@ export async function middleware(request: NextRequest) {
 
   const { data: { user } } = await supabase.auth.getUser()
 
-  // Нэвтрээгүй бол /dashboard руу орохыг хориглох
   if (!user && request.nextUrl.pathname.startsWith('/dashboard')) {
     return NextResponse.redirect(new URL('/auth', request.url))
   }
-
-  // Нэвтэрсэн бол /auth руу орохыг хориглох
+  if (!user && request.nextUrl.pathname.startsWith('/admin')) {
+    return NextResponse.redirect(new URL('/auth', request.url))
+  }
   if (user && request.nextUrl.pathname === '/auth') {
     return NextResponse.redirect(new URL('/dashboard', request.url))
   }
@@ -36,5 +36,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/dashboard/:path*', '/auth']
+  matcher: ['/dashboard/:path*', '/admin/:path*', '/auth']
 }
