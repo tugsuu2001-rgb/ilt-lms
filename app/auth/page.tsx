@@ -88,7 +88,7 @@ export default function AuthPage() {
       <div className="flex-1 flex items-center justify-center p-12 bg-white overflow-y-auto">
         <div className="w-full max-w-sm">
           <h2 className="text-3xl font-serif text-[#0f1a2e] mb-1">Тавтай морил</h2>
-          <p className="text-sm text-gray-500 mb-8">Дансандаа нэвтрэн хичээлээ үргэлжлүүлээрэй</p>
+          <p className="text-sm text-gray-500 mb-8">Амжилтын академ боловсролын тогтолцоо</p>
 
           {/* Tabs */}
           <div className="flex border-b border-gray-200 mb-7">
@@ -119,7 +119,7 @@ export default function AuthPage() {
               <label className="block text-xs font-medium text-gray-400 uppercase tracking-wider mb-2">Нэр</label>
               <input
                 value={name} onChange={e => setName(e.target.value)}
-                className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-lg bg-gray-50 focus:outline-none focus:border-[#1d9e75]"
+                className="w-full px-3 py-2.5 text-sm text-gray-900 border border-gray-200 rounded-lg bg-gray-50 focus:outline-none focus:border-[#1d9e75] placeholder:text-gray-400"
                 placeholder="Таны нэр"/>
             </div>
           )}
@@ -128,7 +128,7 @@ export default function AuthPage() {
             <label className="block text-xs font-medium text-gray-400 uppercase tracking-wider mb-2">И-мэйл</label>
             <input
               type="email" value={email} onChange={e => setEmail(e.target.value)}
-              className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-lg bg-gray-50 focus:outline-none focus:border-[#1d9e75]"
+              className="w-full px-3 py-2.5 text-sm text-gray-900 border border-gray-200 rounded-lg bg-gray-50 focus:outline-none focus:border-[#1d9e75] placeholder:text-gray-400"
               placeholder="name@example.com"/>
           </div>
 
@@ -136,7 +136,7 @@ export default function AuthPage() {
             <label className="block text-xs font-medium text-gray-400 uppercase tracking-wider mb-2">Нууц үг</label>
             <input
               type="password" value={password} onChange={e => setPassword(e.target.value)}
-              className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-lg bg-gray-50 focus:outline-none focus:border-[#1d9e75]"
+              className="w-full px-3 py-2.5 text-sm text-gray-900 border border-gray-200 rounded-lg bg-gray-50 focus:outline-none focus:border-[#1d9e75] placeholder:text-gray-400"
               placeholder="••••••••"/>
           </div>
 
