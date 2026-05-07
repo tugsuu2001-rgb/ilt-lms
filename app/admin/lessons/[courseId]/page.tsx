@@ -102,24 +102,34 @@ export default function LessonsPage() {
   }
 
   async function handleSave() {
-    if (!form.title) { setError('Нэр оруулна уу'); return }
-    setSaving(true)
-    setError('')
+  if (!form.title) { setError('Нэр оруулна уу'); return }
+  if (!courseId) { setError('Course ID олдсонгүй'); return }
+  setSaving(true)
+  setError('')
 
-    const payload = { ...form, course_id: courseId }
-
-    if (editingId) {
-      const { error } = await supabase.from('lessons').update(form).eq('id', editingId)
-      if (error) setError(error.message)
-    } else {
-      const { error } = await supabase.from('lessons').insert(payload)
-      if (error) setError(error.message)
-    }
-
-    setSaving(false)
-    setShowForm(false)
-    fetchLessons()
+  const payload = {
+    title: form.title,
+    description: form.description,
+    video_url: form.video_url,
+    pdf_url: form.pdf_url,
+    duration_minutes: form.duration_minutes,
+    order_index: form.order_index,
+    is_free_preview: form.is_free_preview,
+    course_id: courseId as string,
   }
+
+  if (editingId) {
+    const { error } = await supabase.from('lessons').update(payload).eq('id', editingId)
+    if (error) { setError(error.message); setSaving(false); return }
+  } else {
+    const { error } = await supabase.from('lessons').insert(payload)
+    if (error) { setError(error.message); setSaving(false); return }
+  }
+
+  setSaving(false)
+  setShowForm(false)
+  fetchLessons()
+}
 
   async function handleDelete(id: string) {
     if (!confirm('Устгах уу?')) return
