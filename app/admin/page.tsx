@@ -96,20 +96,13 @@ export default function AdminPage() {
     if (!form.title) { setError('Нэр оруулна уу'); return }
     setSaving(true)
     setError('')
-
     if (editingId) {
-      const { error } = await supabase
-        .from('courses')
-        .update(form)
-        .eq('id', editingId)
+      const { error } = await supabase.from('courses').update(form).eq('id', editingId)
       if (error) setError(error.message)
     } else {
-      const { error } = await supabase
-        .from('courses')
-        .insert(form)
+      const { error } = await supabase.from('courses').insert(form)
       if (error) setError(error.message)
     }
-
     setSaving(false)
     setShowForm(false)
     fetchCourses()
@@ -122,16 +115,12 @@ export default function AdminPage() {
   }
 
   async function togglePublish(course: Course) {
-    await supabase
-      .from('courses')
-      .update({ is_published: !course.is_published })
-      .eq('id', course.id)
+    await supabase.from('courses').update({ is_published: !course.is_published }).eq('id', course.id)
     fetchCourses()
   }
 
   return (
     <main className="min-h-screen bg-[#f8f9fb]">
-      {/* NAV */}
       <nav className="bg-[#0d1b2a] px-8 h-14 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <span className="font-black text-white text-lg">ILT</span>
@@ -143,26 +132,23 @@ export default function AdminPage() {
       </nav>
 
       <div className="max-w-5xl mx-auto px-8 py-10">
-        {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div>
             <h1 className="font-black text-2xl text-[#0f1a2e]">Курс удирдлага</h1>
             <p className="text-sm text-gray-400 mt-1">{courses.length} курс байна</p>
           </div>
-          <button
-            onClick={openNew}
+          <button onClick={openNew}
             className="bg-[#0f1a2e] text-white px-5 py-2.5 rounded-lg text-sm font-medium hover:bg-[#1d9e75] transition">
             + Шинэ курс
           </button>
         </div>
 
-        {/* Course list */}
         {loading ? (
           <div className="text-center text-gray-400 py-20">Ачааллаж байна...</div>
         ) : courses.length === 0 ? (
           <div className="text-center py-20">
             <div className="text-5xl mb-4">📚</div>
-            <div className="text-gray-400 text-sm">Курс байхгүй байна. Шинэ курс нэмнэ үү!</div>
+            <div className="text-gray-400 text-sm">Курс байхгүй байна.</div>
           </div>
         ) : (
           <div className="space-y-3">
@@ -186,18 +172,20 @@ export default function AdminPage() {
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => togglePublish(course)}
+                  {/* ← ШИНЭ ТОВЧ */}
+                  <a href={`/admin/lessons/${course.id}`}
+                    className="text-xs px-3 py-1.5 rounded-lg border border-blue-200 text-blue-600 hover:bg-blue-50 transition">
+                    Хичээлүүд
+                  </a>
+                  <button onClick={() => togglePublish(course)}
                     className={`text-xs px-3 py-1.5 rounded-lg border transition ${course.is_published ? 'border-gray-200 text-gray-500 hover:border-red-300 hover:text-red-500' : 'border-green-200 text-green-600 hover:bg-green-50'}`}>
                     {course.is_published ? 'Нуух' : 'Нийтлэх'}
                   </button>
-                  <button
-                    onClick={() => openEdit(course)}
+                  <button onClick={() => openEdit(course)}
                     className="text-xs px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:border-[#0f1a2e] transition">
                     Засах
                   </button>
-                  <button
-                    onClick={() => handleDelete(course.id)}
+                  <button onClick={() => handleDelete(course.id)}
                     className="text-xs px-3 py-1.5 rounded-lg border border-gray-200 text-red-400 hover:border-red-300 hover:bg-red-50 transition">
                     Устгах
                   </button>
@@ -208,7 +196,6 @@ export default function AdminPage() {
         )}
       </div>
 
-      {/* MODAL */}
       {showForm && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
@@ -218,8 +205,6 @@ export default function AdminPage() {
             </div>
             <div className="p-6 space-y-4">
               {error && <div className="bg-red-50 border border-red-200 text-red-600 text-sm rounded-lg px-4 py-2">{error}</div>}
-
-              {/* Emoji picker */}
               <div>
                 <label className="block text-xs font-medium text-gray-400 uppercase tracking-wider mb-2">Emoji</label>
                 <div className="flex gap-2 flex-wrap">
@@ -231,14 +216,12 @@ export default function AdminPage() {
                   ))}
                 </div>
               </div>
-
               <div>
                 <label className="block text-xs font-medium text-gray-400 uppercase tracking-wider mb-2">Курсын нэр *</label>
                 <input value={form.title} onChange={e => setForm({...form, title: e.target.value})}
                   className="w-full px-3 py-2.5 text-sm text-gray-900 border border-gray-200 rounded-lg bg-gray-50 focus:outline-none focus:border-[#1d9e75]"
                   placeholder="Жишээ: Манлайлал үндэс"/>
               </div>
-
               <div>
                 <label className="block text-xs font-medium text-gray-400 uppercase tracking-wider mb-2">Тайлбар</label>
                 <textarea value={form.description} onChange={e => setForm({...form, description: e.target.value})}
@@ -246,7 +229,6 @@ export default function AdminPage() {
                   className="w-full px-3 py-2.5 text-sm text-gray-900 border border-gray-200 rounded-lg bg-gray-50 focus:outline-none focus:border-[#1d9e75] resize-none"
                   placeholder="Курсын тайлбар..."/>
               </div>
-
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-medium text-gray-400 uppercase tracking-wider mb-2">Хичээлийн тоо</label>
@@ -259,8 +241,6 @@ export default function AdminPage() {
                     className="w-full px-3 py-2.5 text-sm text-gray-900 border border-gray-200 rounded-lg bg-gray-50 focus:outline-none focus:border-[#1d9e75]"/>
                 </div>
               </div>
-
-              {/* Free toggle */}
               <div className="flex items-center gap-3">
                 <button onClick={() => setForm({...form, is_free: !form.is_free})}
                   className={`w-11 h-6 rounded-full transition relative ${form.is_free ? 'bg-[#1d9e75]' : 'bg-gray-200'}`}>
@@ -268,7 +248,6 @@ export default function AdminPage() {
                 </button>
                 <span className="text-sm text-gray-600">Үнэгүй курс</span>
               </div>
-
               {!form.is_free && (
                 <div>
                   <label className="block text-xs font-medium text-gray-400 uppercase tracking-wider mb-2">Үнэ (₮)</label>
@@ -277,8 +256,6 @@ export default function AdminPage() {
                     placeholder="49000"/>
                 </div>
               )}
-
-              {/* Published toggle */}
               <div className="flex items-center gap-3">
                 <button onClick={() => setForm({...form, is_published: !form.is_published})}
                   className={`w-11 h-6 rounded-full transition relative ${form.is_published ? 'bg-[#1d9e75]' : 'bg-gray-200'}`}>
@@ -287,7 +264,6 @@ export default function AdminPage() {
                 <span className="text-sm text-gray-600">Нийтлэх</span>
               </div>
             </div>
-
             <div className="p-6 border-t border-gray-100 flex gap-3">
               <button onClick={() => setShowForm(false)}
                 className="flex-1 border border-gray-200 text-gray-600 rounded-lg py-2.5 text-sm hover:bg-gray-50 transition">
