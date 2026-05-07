@@ -21,7 +21,8 @@ type Course = {
 }
 
 export default function LessonsPage() {
-  const { courseId } = useParams()
+  const params = useParams()
+  const courseId = Array.isArray(params.courseId) ? params.courseId[0] : params.courseId
   const router = useRouter()
   const supabase = createClient()
 
