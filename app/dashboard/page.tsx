@@ -60,9 +60,14 @@ export default async function Dashboard() {
                     <span className="text-sm font-semibold text-[#1d9e75]">
                       {course.is_free ? 'Үнэгүй' : `₮${course.price.toLocaleString()}`}
                     </span>
-                    <button className="bg-[#0f1a2e] text-white text-xs px-3 py-1.5 rounded-lg hover:bg-[#1d9e75] transition">
-                      Эхлэх
-                    </button>
+                    //<button className="bg-[#0f1a2e] text-white text-xs px-3 py-1.5 rounded-lg hover:bg-[#1d9e75] transition">
+                     // Эхлэх
+                    //</button>
+					// "Эхлэх" button-г link болгох
+					<a href={`/courses/${course.id}`}
+						className="bg-[#0f1a2e] text-white text-xs px-3 py-1.5 rounded-lg hover:bg-[#1d9e75] transition">
+							Эхлэх
+						</a>
                   </div>
                 </div>
               </div>
