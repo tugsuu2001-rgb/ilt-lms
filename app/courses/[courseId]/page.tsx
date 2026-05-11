@@ -1,7 +1,8 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 
-export default async function CoursePage({ params }: { params: { courseId: string } }) {
+export default async function CoursePage({ params }: { params: Promise<{ courseId: string }> }) {
+  const { courseId } = await params
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/auth')
@@ -9,13 +10,13 @@ export default async function CoursePage({ params }: { params: { courseId: strin
   const { data: course } = await supabase
     .from('courses')
     .select('*')
-    .eq('id', params.courseId)
+    .eq('id', courseId)
     .single()
 
   const { data: lessons } = await supabase
     .from('lessons')
     .select('*')
-    .eq('course_id', params.courseId)
+    .eq('course_id', courseId)
     .order('order_index')
 
   if (!course) redirect('/dashboard')
@@ -30,7 +31,6 @@ export default async function CoursePage({ params }: { params: { courseId: strin
       </nav>
 
       <div className="max-w-4xl mx-auto px-8 py-10">
-        {/* Course header */}
         <div className="bg-[#0d1b2a] rounded-2xl p-8 mb-8 flex items-center gap-6">
           <div className="text-6xl">{course.thumbnail_emoji}</div>
           <div>
@@ -46,12 +46,11 @@ export default async function CoursePage({ params }: { params: { courseId: strin
           </div>
         </div>
 
-        {/* Lessons list */}
         <h2 className="font-black text-xl text-[#0f1a2e] mb-4">Хичээлүүд</h2>
         <div className="space-y-3">
           {lessons?.map((lesson, i) => (
-            <a key={lesson.id} href={`/courses/${course.id}/lessons/${lesson.id}`}
-              className="bg-white border border-gray-200 rounded-xl p-5 flex items-center gap-4 hover:border-[#1d9e75] hover:shadow-sm transition cursor-pointer block">
+            <a key={lesson.id} href={`/courses/${courseId}/lessons/${lesson.id}`}
+              className="bg-white border border-gray-200 rounded-xl p-5 flex items-center gap-4 hover:border-[#1d9e75] hover:shadow-sm transition block">
               <div className="w-9 h-9 rounded-full bg-[#0d1b2a] flex items-center justify-center text-sm font-bold text-white flex-shrink-0">
                 {i + 1}
               </div>
