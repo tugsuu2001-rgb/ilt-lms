@@ -8,7 +8,7 @@ export default async function Dashboard() {
 
   const { data: courses } = await supabase
     .from('courses')
-    .select('*')
+    .select('*, lessons(id, order_index)')
     .eq('is_published', true)
     .order('order_index')
 
@@ -40,35 +40,42 @@ export default async function Dashboard() {
           </div>
         ) : (
           <div className="grid grid-cols-3 gap-5">
-            {courses.map((course) => (
-              <div key={course.id} className="bg-white border border-gray-200 rounded-2xl overflow-hidden hover:shadow-md transition cursor-pointer">
-                <div className="h-40 bg-amber-50 flex items-center justify-center text-6xl">
-                  {course.thumbnail_emoji}
+            {courses.map((course) => {
+              const sortedLessons = course.lessons?.sort((a: {order_index: number}, b: {order_index: number}) => a.order_index - b.order_index)
+              const firstLessonId = sortedLessons?.[0]?.id
+              const href = firstLessonId
+                ? `/courses/${course.id}/lessons/${firstLessonId}`
+                : `/courses/${course.id}`
+
+              return (
+                <div key={course.id} className="bg-white border border-gray-200 rounded-2xl overflow-hidden hover:shadow-md transition">
+                  <div className="h-40 bg-amber-50 flex items-center justify-center text-6xl">
+                    {course.thumbnail_emoji}
+                  </div>
+                  <div className="p-5">
+                    <div className="font-semibold text-[#0f1a2e] mb-1">{course.title}</div>
+                    {course.description && (
+                      <div className="text-xs text-gray-400 mb-2 line-clamp-2">{course.description}</div>
+                    )}
+                    <div className="text-xs text-gray-400 mb-3">
+                      {course.lesson_count} хичээл · {course.duration_hours} цаг
+                    </div>
+                    <div className="h-1.5 bg-gray-100 rounded-full mb-3">
+                      <div className="h-full bg-[#1d9e75] rounded-full w-0"/>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-semibold text-[#1d9e75]">
+                        {course.is_free ? 'Үнэгүй' : `₮${course.price.toLocaleString()}`}
+                      </span>
+                      <a href={href}
+                        className="bg-[#0f1a2e] text-white text-xs px-3 py-1.5 rounded-lg hover:bg-[#1d9e75] transition">
+                        Эхлэх →
+                      </a>
+                    </div>
+                  </div>
                 </div>
-                <div className="p-5">
-                  <div className="font-semibold text-[#0f1a2e] mb-1">{course.title}</div>
-                  {course.description && (
-                    <div className="text-xs text-gray-400 mb-2 line-clamp-2">{course.description}</div>
-                  )}
-                  <div className="text-xs text-gray-400 mb-3">
-                    {course.lesson_count} хичээл · {course.duration_hours} цаг
-                  </div>
-                  <div className="h-1.5 bg-gray-100 rounded-full mb-3">
-                    <div className="h-full bg-[#1d9e75] rounded-full w-0"/>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-semibold text-[#1d9e75]">
-                      {course.is_free ? 'Үнэгүй' : `₮${course.price.toLocaleString()}`}
-                    </span>
-                      <a href={`/courses/${course.id}`}
-						className="bg-[#0f1a2e] text-white text-xs px-3 py-1.5 rounded-lg hover:bg-[#1d9e75] transition">
-							Эхлэх
-						</a>
-					 
-                  </div>
-                </div>
-              </div>
-            ))}
+              )
+            })}
           </div>
         )}
       </section>
