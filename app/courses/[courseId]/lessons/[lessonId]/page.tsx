@@ -1,10 +1,11 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
+import CompleteButton from './CompleteButton'
 
 function getYoutubeEmbedUrl(url: string) {
   if (!url) return null
   const match = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\n?#]+)/)
-  if (match) return `https://www.youtube.com/embed/${match[1]}`
+  if (match) return `https://www.youtube.com/embed/${match[1]}?rel=0&modestbranding=1`
   return url
 }
 
@@ -38,30 +39,112 @@ export default async function LessonPage({
 
   if (!lesson || !course) redirect('/dashboard')
 
+  const { data: completedLessons } = await supabase
+    .from('lesson_progress')
+    .select('lesson_id')
+    .eq('user_id', user.id)
+    .eq('course_id', courseId)
+
+  const { data: progressData } = await supabase
+    .from('lesson_progress')
+    .select('id')
+    .eq('user_id', user.id)
+    .eq('lesson_id', lessonId)
+    .single()
+
+  const completedIds = new Set(completedLessons?.map(p => p.lesson_id) || [])
+  const isCompleted = !!progressData
   const currentIndex = lessons?.findIndex(l => l.id === lessonId) ?? 0
-  const prevLesson = lessons?.[currentIndex - 1]
   const nextLesson = lessons?.[currentIndex + 1]
+  const totalLessons = lessons?.length ?? 0
+  const progress = totalLessons > 0 ? Math.round((completedIds.size / totalLessons) * 100) : 0
   const embedUrl = getYoutubeEmbedUrl(lesson.video_url)
 
   return (
-    <main className="min-h-screen bg-[#f8f9fb]">
-      <nav className="bg-white border-b border-gray-200 px-8 h-16 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <span className="font-black text-xl text-[#0f1a2e]">ILT</span>
-          <span className="text-gray-300">/</span>
-          <a href={`/courses/${courseId}`} className="text-sm text-gray-500 hover:text-[#0f1a2e]">
-            {course.thumbnail_emoji} {course.title}
+    <div className="flex h-screen overflow-hidden bg-white">
+      {/* SIDEBAR */}
+      <div className="w-72 flex-shrink-0 bg-white border-r border-gray-200 flex flex-col h-full">
+        <div className="p-4 border-b border-gray-200">
+          <a href="/dashboard" className="text-xs text-blue-500 hover:underline flex items-center gap-1 mb-3">
+            ← Dashboard руу буцах
           </a>
+          <div className="font-black text-sm text-[#0f1a2e] leading-tight mb-2">
+            {course.thumbnail_emoji} {course.title}
+          </div>
+          <div className="text-xs text-gray-400 mb-1">{progress}% complete</div>
+          <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
+            <div className="h-full bg-[#1d9e75] rounded-full transition-all" style={{ width: `${progress}%` }}/>
+          </div>
         </div>
-        <span className="text-sm text-gray-400">{currentIndex + 1} / {lessons?.length}</span>
-      </nav>
 
-      <div className="max-w-6xl mx-auto px-8 py-8 flex gap-8">
-        {/* Main content */}
-        <div className="flex-1">
-          {/* Video */}
-          {embedUrl && (
-            <div className="bg-black rounded-2xl overflow-hidden mb-6 aspect-video">
+        <div className="px-3 py-2 border-b border-gray-100">
+          <div className="flex items-center gap-2 bg-gray-50 rounded-lg px-3 py-1.5">
+            <svg className="w-3 h-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+            </svg>
+            <span className="text-xs text-gray-400">Search by lesson title</span>
+          </div>
+        </div>
+
+        <div className="px-4 py-3 flex items-center justify-between border-b border-gray-100 bg-gray-50">
+          <div className="flex items-center gap-2">
+            <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${completedIds.size === totalLessons && totalLessons > 0 ? 'border-[#1d9e75] bg-[#1d9e75]' : 'border-gray-300'}`}>
+              {completedIds.size === totalLessons && totalLessons > 0 && (
+                <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/>
+                </svg>
+              )}
+            </div>
+            <span className="font-semibold text-xs text-[#0f1a2e]">{course.title}</span>
+          </div>
+          <span className="text-xs text-gray-400">{completedIds.size}/{totalLessons}</span>
+        </div>
+
+        <div className="flex-1 overflow-y-auto">
+          {lessons?.map((l, i) => (
+            <a key={l.id} href={`/courses/${courseId}/lessons/${l.id}`}
+              className={`flex items-start gap-3 px-4 py-3 hover:bg-gray-50 transition border-b border-gray-50 ${l.id === lessonId ? 'bg-blue-50' : ''}`}>
+              <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 mt-0.5
+                ${completedIds.has(l.id) ? 'border-[#1d9e75] bg-[#1d9e75]' :
+                  l.id === lessonId ? 'border-blue-500 bg-blue-500' : 'border-gray-300'}`}>
+                {completedIds.has(l.id) ? (
+                  <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/>
+                  </svg>
+                ) : (
+                  <span className="w-1.5 h-1.5 rounded-full bg-white"/>
+                )}
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className={`text-xs leading-tight mb-0.5 ${l.id === lessonId ? 'font-semibold text-[#0f1a2e]' : 'text-gray-600'}`}>
+                  {l.title}
+                </div>
+                <div className="flex items-center gap-1 text-xs text-gray-400">
+                  {l.video_url && <span>🎬 VIDEO</span>}
+                  {l.pdf_url && <span>📄 PDF</span>}
+                  {l.duration_minutes > 0 && <span>· {l.duration_minutes} МИН</span>}
+                </div>
+              </div>
+            </a>
+          ))}
+        </div>
+      </div>
+
+      {/* MAIN */}
+      <div className="flex-1 flex flex-col overflow-hidden">
+        <div className="h-12 border-b border-gray-200 flex items-center justify-between px-6 flex-shrink-0">
+          <span className="font-semibold text-sm text-[#0f1a2e]">{lesson.title}</span>
+          {lesson.pdf_url && (
+            <a href={lesson.pdf_url} target="_blank" rel="noopener noreferrer"
+              className="text-xs text-gray-500 hover:text-[#0f1a2e] flex items-center gap-1">
+              📄 Материал татах
+            </a>
+          )}
+        </div>
+
+        <div className="flex-1 overflow-y-auto">
+          {embedUrl ? (
+            <div className="bg-black w-full max-h-[75vh]" style={{ aspectRatio: '16/9' }}>
               <iframe
                 src={embedUrl}
                 className="w-full h-full"
@@ -69,84 +152,30 @@ export default async function LessonPage({
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
               />
             </div>
-          )}
-
-          {/* Lesson info */}
-          <div className="bg-white border border-gray-200 rounded-2xl p-6 mb-4">
-            <h1 className="font-black text-2xl text-[#0f1a2e] mb-2">{lesson.title}</h1>
-            {lesson.description && (
-              <p className="text-gray-500 text-sm leading-relaxed">{lesson.description}</p>
-            )}
-            {lesson.duration_minutes > 0 && (
-              <div className="text-xs text-gray-400 mt-3">⏱ {lesson.duration_minutes} минут</div>
-            )}
-          </div>
-
-          {/* PDF */}
-          {lesson.pdf_url && (
-            <div className="bg-white border border-gray-200 rounded-2xl p-5 mb-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <span className="text-2xl">📄</span>
-                  <div>
-                    <div className="font-medium text-[#0f1a2e] text-sm">Хичээлийн материал</div>
-                    <div className="text-xs text-gray-400">PDF файл</div>
-                  </div>
-                </div>
-                <a href={lesson.pdf_url} target="_blank" rel="noopener noreferrer"
-                  className="bg-[#0f1a2e] text-white text-xs px-4 py-2 rounded-lg hover:bg-[#1d9e75] transition">
-                  Татах / Үзэх
-                </a>
-              </div>
+          ) : (
+            <div className="bg-gray-100 w-full flex items-center justify-center max-h-[70vh]" style={{ aspectRatio: '16/9' }}>
+              <span className="text-gray-400 text-sm">Видео байхгүй байна</span>
             </div>
           )}
 
-          {/* Prev / Next */}
-          <div className="flex gap-3">
-            {prevLesson ? (
-              <a href={`/courses/${courseId}/lessons/${prevLesson.id}`}
-                className="flex-1 bg-white border border-gray-200 rounded-xl p-4 hover:border-[#0f1a2e] transition">
-                <div className="text-xs text-gray-400 mb-1">← Өмнөх</div>
-                <div className="text-sm font-medium text-[#0f1a2e]">{prevLesson.title}</div>
-              </a>
-            ) : <div className="flex-1"/>}
-            {nextLesson ? (
-              <a href={`/courses/${courseId}/lessons/${nextLesson.id}`}
-                className="flex-1 bg-white border border-gray-200 rounded-xl p-4 hover:border-[#1d9e75] transition text-right">
-                <div className="text-xs text-gray-400 mb-1">Дараах →</div>
-                <div className="text-sm font-medium text-[#0f1a2e]">{nextLesson.title}</div>
-              </a>
-            ) : <div className="flex-1"/>}
-          </div>
+          {lesson.description && (
+            <div className="px-8 py-6 max-w-4xl">
+              <h2 className="font-bold text-lg text-[#0f1a2e] mb-2">{lesson.title}</h2>
+              <p className="text-gray-500 text-sm leading-relaxed">{lesson.description}</p>
+            </div>
+          )}
         </div>
 
-        {/* Sidebar — хичээлийн жагсаалт */}
-        <div className="w-72 flex-shrink-0">
-          <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden">
-            <div className="p-4 border-b border-gray-100">
-              <div className="font-semibold text-sm text-[#0f1a2e]">Хичээлүүд</div>
-            </div>
-            <div className="divide-y divide-gray-100">
-              {lessons?.map((l, i) => (
-                <a key={l.id} href={`/courses/${courseId}/lessons/${l.id}`}
-                  className={`flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition ${l.id === lessonId ? 'bg-green-50 border-l-2 border-[#1d9e75]' : ''}`}>
-                  <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 ${l.id === lessonId ? 'bg-[#1d9e75] text-white' : 'bg-gray-100 text-gray-500'}`}>
-                    {i + 1}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className={`text-sm truncate ${l.id === lessonId ? 'font-semibold text-[#0f1a2e]' : 'text-gray-600'}`}>
-                      {l.title}
-                    </div>
-                    {l.duration_minutes > 0 && (
-                      <div className="text-xs text-gray-400">{l.duration_minutes} мин</div>
-                    )}
-                  </div>
-                </a>
-              ))}
-            </div>
-          </div>
+        <div className="h-14 border-t border-gray-200 flex items-center justify-center flex-shrink-0 bg-white">
+          <CompleteButton
+            lessonId={lessonId}
+            courseId={courseId}
+            nextLessonId={nextLesson?.id}
+            userId={user.id}
+            isCompleted={isCompleted}
+          />
         </div>
       </div>
-    </main>
+    </div>
   )
 }
