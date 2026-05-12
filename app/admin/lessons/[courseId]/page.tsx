@@ -193,6 +193,10 @@ export default function LessonsPage() {
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
+				<a href={`/admin/quiz/${lesson.id}`}
+					className="text-xs px-3 py-1.5 rounded-lg border border-purple-200 text-purple-600 hover:bg-purple-50 transition">
+					Quiz
+					</a>
                   <button onClick={() => openEdit(lesson)}
                     className="text-xs px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:border-[#0f1a2e] transition">
                     Засах
